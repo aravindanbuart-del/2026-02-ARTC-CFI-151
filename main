@@ -1,0 +1,192 @@
+{
+ "cells": [
+  {
+   "cell_type": "code",
+   "execution_count": 1,
+   "id": "ec3fdb19",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "C:\\Users\\ADMIN\\AppData\\Roaming\\Python\\Python313\\site-packages\\pandas\\core\\computation\\expressions.py:22: UserWarning: Pandas requires version '2.10.2' or newer of 'numexpr' (version '2.10.1' currently installed).\n",
+      "  from pandas.core.computation.check import NUMEXPR_INSTALLED\n"
+     ]
+    }
+   ],
+   "source": [
+    "import os\n",
+    "import numpy as np\n",
+    "import pandas as pd\n",
+    "import matplotlib.pyplot as plt\n",
+    "from sklearn.metrics import (\n",
+    "    accuracy_score, precision_score, recall_score,\n",
+    "    f1_score, confusion_matrix, roc_curve, auc\n",
+    ")\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 3,
+   "id": "af1dcfa5",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ===============================\n",
+    "# GLOBAL PLOT SETTINGS\n",
+    "# ===============================\n",
+    "plt.rcParams[\"font.family\"] = \"Times New Roman\"\n",
+    "plt.rcParams[\"font.weight\"] = \"bold\"\n",
+    "\n",
+    "FIGSIZE = (10, 6)\n",
+    "\n",
+    "TITLE_SIZE = 22\n",
+    "LABEL_SIZE = 20\n",
+    "TICK_SIZE = 18\n",
+    "LEGEND_SIZE = 16\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "id": "08282f7a",
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "# ===============================\n",
+    "# CREATE FOLDERS\n",
+    "# ===============================\n",
+    "BASE_DIR = \"results\"\n",
+    "METRIC_DIR = os.path.join(BASE_DIR, \"metrics\")\n",
+    "GRAPH_DIR = os.path.join(BASE_DIR, \"graphs\")\n",
+    "LOG_DIR = os.path.join(BASE_DIR, \"logs\")\n",
+    "\n",
+    "for path in [BASE_DIR, METRIC_DIR, GRAPH_DIR, LOG_DIR]:\n",
+    "    os.makedirs(path, exist_ok=True)\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "id": "f1c1dd98",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "  node_id node_type  energy_level  transmission_count  authentication_status  \\\n",
+      "0  node_1        SN     74.106044                 443                      1   \n",
+      "1  node_2        SN     17.466225                 234                      1   \n",
+      "2  node_3        SN     60.449582                 457                      1   \n",
+      "3  node_4        SN     81.705580                 458                      1   \n",
+      "4  node_5        SN     86.606146                   2                      1   \n",
+      "\n",
+      "   malicious_activity_flag blockchain_tx_id tx_verification_status  \\\n",
+      "0                        0       d6f79a0d0f               Verified   \n",
+      "1                        0       58f51b4f2d               Verified   \n",
+      "2                        0       06c989aa3b               Verified   \n",
+      "3                        0       4ca65520b9               Verified   \n",
+      "4                        0       918669461c               Verified   \n",
+      "\n",
+      "    ipfs_data_hash  residual_energy  location_x  location_y   pdr     ber  \\\n",
+      "0  f3b34d7174184a4        51.956044   46.140129   44.882208  0.85  0.0197   \n",
+      "1  28cebd73182082c         5.766225   39.965128   73.860931  0.90  0.0312   \n",
+      "2  7b1dda0e7b4524e        37.599582   49.160202   41.905206  0.91  0.0131   \n",
+      "3  77805cd60afed8a        58.805580   48.079187   90.272045  0.74  0.0399   \n",
+      "4  faba64f502ac5bd        86.506146   28.839871   32.388238  0.84  0.0069   \n",
+      "\n",
+      "   throughput  end_to_end_delay  \n",
+      "0      184.83             15.60  \n",
+      "1      360.23             18.63  \n",
+      "2      411.08             13.41  \n",
+      "3      283.65             17.75  \n",
+      "4      340.24             15.29  \n"
+     ]
+    }
+   ],
+   "source": [
+    "# ===============================\n",
+    "# LOAD DATASET\n",
+    "# ===============================\n",
+    "data = pd.read_csv(\"blockchain_wsn_dataset.csv\")\n",
+    "data=data.head(5)\n",
+    "print(data)\n",
+    "\n",
+    "y_true = data[\"malicious_activity_flag\"]\n",
+    "#y_pred = data[\"predicted_label\"]  # from GNN output\n",
+    "#y_score = data[\"attack_probability\"]  # probability output\n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 7,
+   "id": "bf9a8216",
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "Requirement already satisfied: pandas in c:\\users\\admin\\appdata\\roaming\\python\\python313\\site-packages (3.0.0)\n",
+      "Requirement already satisfied: numpy>=1.26.0 in c:\\users\\admin\\appdata\\roaming\\python\\python313\\site-packages (from pandas) (2.2.6)\n",
+      "Requirement already satisfied: python-dateutil>=2.8.2 in c:\\users\\admin\\appdata\\roaming\\python\\python313\\site-packages (from pandas) (2.9.0.post0)\n",
+      "Requirement already satisfied: tzdata in c:\\users\\admin\\appdata\\roaming\\python\\python313\\site-packages (from pandas) (2025.2)\n",
+      "Requirement already satisfied: six>=1.5 in c:\\users\\admin\\appdata\\roaming\\python\\python313\\site-packages (from python-dateutil>=2.8.2->pandas) (1.17.0)\n",
+      "Note: you may need to restart the kernel to use updated packages.\n"
+     ]
+    },
+    {
+     "name": "stderr",
+     "output_type": "stream",
+     "text": [
+      "\n",
+      "[notice] A new release of pip is available: 25.3 -> 26.0.1\n",
+      "[notice] To update, run: python.exe -m pip install --upgrade pip\n"
+     ]
+    }
+   ],
+   "source": [
+    "pip install pandas \n"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "c9469661",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  },
+  {
+   "cell_type": "code",
+   "execution_count": null,
+   "id": "3d7dccb3",
+   "metadata": {},
+   "outputs": [],
+   "source": []
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "base",
+   "language": "python",
+   "name": "python3"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.13.5"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 5
+}
